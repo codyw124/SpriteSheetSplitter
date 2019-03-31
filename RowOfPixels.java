@@ -1,54 +1,52 @@
-import java.awt.*;
-import java.awt.geom.*;
-import java.awt.image.*;
-import java.io.*;
-import java.util.*;
-import javax.imageio.ImageIO;
+import java.util.ArrayList;
 
 class RowOfPixels{
-    ArrayList<Integer> pixels_;
+    private ArrayList<Integer> pixels_;
 
-    boolean allPixelsAreTheSame_;
+    private boolean allPixelsAreTheBackgroundColor_;
 
-    RowOfPixels(ArrayList<Integer> pixels, boolean allPixelsAreTheSame){
+    RowOfPixels(ArrayList<Integer> pixels, boolean allPixelsAreTheBackgroundColor){
         pixels_ = pixels;
-        allPixelsAreTheSame_ = allPixelsAreTheSame;
+        allPixelsAreTheBackgroundColor_ = allPixelsAreTheBackgroundColor;
+    }
+
+    public void setAllPixelsAreSame(boolean newAllBGColor){
+        allPixelsAreTheBackgroundColor_ = newAllBGColor;
     }
 	
 	public Integer remove(int index){
 		return pixels_.remove(index);
 	}
 	
-	RowOfPixels subList(int from, int to){
+	public RowOfPixels subList(int from, int to, int backgroundColor){
 		
 		ArrayList<Integer> newPixels =  new ArrayList<Integer>(pixels_.subList(from,to));
 		
-		boolean newAllPixelsAreTheSame = true;
-		
-		Integer firstPixel = newPixels.get(0);
+		boolean newAllPixelsAreBGColor = true;
 		
 		for(Integer currentPixel: newPixels){
-			if(currentPixel != firstPixel){
-				newAllPixelsAreTheSame = false;
+			if(currentPixel.intValue() != backgroundColor){
+				newAllPixelsAreBGColor = false;
+				break;
 			}
 		}
 		
-		return new RowOfPixels(newPixels, newAllPixelsAreTheSame);
+		return new RowOfPixels(newPixels, newAllPixelsAreBGColor);
 	}
 
-    Integer get(int i){
+	public Integer get(int i){
         return pixels_.get(i);
     }
 
-    int size(){
+	public int size(){
         return pixels_.size();
     }
 
-    ArrayList<Integer> getRowsOfPixels(){
+	public ArrayList<Integer> getRowsOfPixels(){
         return pixels_;
     }
 
-    boolean allPixelsAreTheSame(){
-        return allPixelsAreTheSame_;
+	public boolean allPixelsAreBackgroundColor(){
+        return allPixelsAreTheBackgroundColor_;
     }
 }

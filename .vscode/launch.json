@@ -1,0 +1,10 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "CodeLens (Launch) - Image",
+            "request": "launch",
+            "mainClass": "Image"
+        }
+    ]
+}
