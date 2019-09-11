@@ -3,22 +3,28 @@ import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
+import java.nio.file.StandardOpenOption;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 import javax.imageio.ImageIO;
 
 class Image {
 	public static void main(String args[]) throws Exception {
-		// make sure they gave us a file
+		// if they did not give me a file
 		if (args.length != 1) {
+			//tell them they did not give me a file
 			System.out.println("you didnt give me a file");
-		} else {
-			// read the file
+		} 
+		//if i did get a file
+		else {
+			// read the file into an instance of the image class(which is really just a list of RowOfPixels)
 			Image originalImage = new Image(new File(args[0]));
 
-			// split it into rows
+			// split the original image into  itsrows
 			ArrayList<Image> rows = originalImage.splitIntoRows();
 
-			// this will be what holds all the sprites
+			// make a place that will hold all the images that we generate
 			ArrayList<Image> images = new ArrayList<Image>();
 
 			// for each row
@@ -32,12 +38,18 @@ class Image {
 				}
 			}
 
+			boolean needToCreateXMLFile = true;
+
 			for (Image image : images) {
-				System.out.println("file " + Image.filesGenerated_);
 
 				image.cropSides();
-				image.writeImageToFile();
+				
+				image.writeImageToFile(needToCreateXMLFile);
+
+				needToCreateXMLFile = false;
 			}
+
+			Files.write(Paths.get("./" + fileName_ + "/" + fileName_ + ".xml"), "</spritesheet>".getBytes(), StandardOpenOption.APPEND);
 		}
 	}
 
@@ -204,9 +216,41 @@ class Image {
 		return images;
 	}
 
-	public void writeImageToFile() throws Exception {
+	public void writeWidthHeightXML(String fileName, String nameOfRelativeGeneratedFile) throws Exception{
+
+		String toAppend = "\t<sprite>\n"
+		+ "\t\t<name>" + nameOfRelativeGeneratedFile + "</name>\n"
+		+ "\t\t<direction>SOMEDIRECTION</direction>\n"
+		+ "\t\t<x>" + "X" + "</x>\n"
+		+ "\t\t<y>" + "Y" + "</y>\n"
+		+ "\t\t<w>" + String.valueOf(rowsOfPixels_.get(0).size()) + "</w>\n"
+		+ "\t\t<h>" + String.valueOf(rowsOfPixels_.size()) + "</h>\n"
+		+ "\t</sprite>\n";
+
+		Files.write(Paths.get(fileName), toAppend.getBytes(), StandardOpenOption.APPEND);
+	}
+
+	public void writeImageToFile(boolean needToCreateXML) throws Exception {
 		int height = rowsOfPixels_.size();
 		int width = rowsOfPixels_.get(0).size();
+
+		//if we need to create an xml file
+		if(needToCreateXML){
+
+			File xmlFile = new File("./" + fileName_ + "/" + fileName_ + ".xml");
+
+			if(xmlFile.exists()){
+				//delete the old one
+				xmlFile.delete();
+			} 
+			
+			//create the file
+			xmlFile.createNewFile();
+
+			Files.write(Paths.get("./" + fileName_ + "/" + fileName_ + ".xml"), "<spritesheet>\n".getBytes(), StandardOpenOption.APPEND);
+		}
+
+		writeWidthHeightXML("./" + fileName_ + "/" + fileName_ + ".xml", fileName_ + "-" + filesGenerated_);
 
 		if (height > 1 && width > 1) {
 			// make an image thats a the height and width of the sprite we want
@@ -237,6 +281,8 @@ class Image {
 
 			// write the image file
 			ImageIO.write(bi, "PNG", new File("./" + fileName_ + "/" + fileName_ + "-" + filesGenerated_ + ".png"));
+
+			System.out.println("file " + Image.filesGenerated_);
 
 			// increment the number of files we have generated
 			filesGenerated_++;
