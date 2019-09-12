@@ -22,7 +22,7 @@ class Image {
 			Image originalImage = new Image(new File(args[0]));
 
 			// split the original image into  itsrows
-			ArrayList<Image> rows = originalImage.splitIntoRows();
+			ArrayList<Image> rows = originalImage.splitIntoArrayOfImagesWhereRowAllSameColor();
 
 			// make a place that will hold all the images that we generate
 			ArrayList<Image> images = new ArrayList<Image>();
@@ -30,7 +30,7 @@ class Image {
 			// for each row
 			for (Image row : rows) {
 				// get the sprites in the current row
-				ArrayList<Image> spritesInRow = row.splitIntoColumns();
+				ArrayList<Image> spritesInRow = row.splitIntoArrayOfImagesWhereColumnAllSameColor();
 
 				// for each sprite
 				for (Image currentSprite : spritesInRow) {
@@ -57,6 +57,8 @@ class Image {
 	static public String fileName_ = "";
 	static public int backgroundColor_;
 	private ArrayList<RowOfPixels> rowsOfPixels_;
+	private int topLeftX;
+	private int topLeftY;
 
 	Image() {
 		rowsOfPixels_ = new ArrayList<RowOfPixels>();
@@ -117,7 +119,7 @@ class Image {
 		return rowsOfPixels_;
 	}
 
-	public ArrayList<Image> splitIntoRows() throws Exception {
+	public ArrayList<Image> splitIntoArrayOfImagesWhereRowAllSameColor() throws Exception {
 		// where i will store the images that this is split into
 		ArrayList<Image> images = new ArrayList<Image>();
 
@@ -159,7 +161,7 @@ class Image {
 		return images;
 	}
 
-	public ArrayList<Image> splitIntoColumns() throws Exception {
+	public ArrayList<Image> splitIntoArrayOfImagesWhereColumnAllSameColor() throws Exception {
 
 		ArrayList<Integer> splitPoints = new ArrayList<Integer>();
 
