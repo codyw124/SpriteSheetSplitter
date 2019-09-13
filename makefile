@@ -1,8 +1,5 @@
-Image.class:RowOfPixels.class Image.java
+Image.class:Image.java
 	javac Image.java
 
-RowOfPixels.class: RowOfPixels.java
-	javac RowOfPixels.java
-
 clean:
-	rm *.class
+	rm -r *.class ./Goku ./.vscode
