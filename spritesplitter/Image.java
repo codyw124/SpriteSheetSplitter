@@ -1,12 +1,38 @@
+
+package spritesplitter;
+
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.Map;
 import java.nio.file.StandardOpenOption;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import javax.imageio.ImageIO;
+
+class Pair{
+	public int x;
+	public int y;
+
+	public Pair(int x, int y){
+		this.x = x;
+		this.y = y;
+	}
+
+	@Override
+	public boolean equals(Object obj)
+	{
+		boolean ret =  (obj != null) && (obj.getClass() == this.getClass());
+		if(ret){
+			Pair objectSpecificTester = (Pair)obj; 
+			ret = x == objectSpecificTester.x && y == objectSpecificTester.y;
+		}
+		return ret;
+	}
+}
 
 class Image{
 	public static void main(String args[]) throws Exception {
@@ -18,20 +44,18 @@ class Image{
 		} 
 		else {
 			Image originalImage = new Image(args[0]);
-			ArrayList<Image> rows = originalImage.splitOnRowsOfSameColor();
-			for(Image x : rows){
-				x.writeToFile();
-			}
+			originalImage.getImages();
 		}
 	}
 
-	private int h;
-	private int w;
-	private int x;
-	private int y;
+	public int h;
+	public int w;
+	public int x;
+	public int y;
 	private int backgroundColor;
 	private String fileName;
 	private ArrayList<ArrayList<Integer>> pixels;
+	private ArrayList<Pair> locationsThatAreNotBGColor;
 	static private int filesGenerated = 1;
 	
 	public Image(String loadThis) throws Exception{
@@ -39,6 +63,7 @@ class Image{
 		BufferedImage bi = ImageIO.read(new File(loadThis));
 		backgroundColor = bi.getRGB(0,0);
 		pixels = new ArrayList<ArrayList<Integer>>();
+		locationsThatAreNotBGColor = new ArrayList<Pair>();
 		x = 0;
 		y = 0;
 		h = bi.getHeight();
@@ -46,7 +71,11 @@ class Image{
 		for(int currentRow = 0; currentRow < h; currentRow++){
 			ArrayList<Integer> pixelsInCurrentRow = new ArrayList<Integer>();
 			for(int currentColumn = 0; currentColumn < w; currentColumn++){
-				pixelsInCurrentRow.add(bi.getRGB(currentColumn,currentRow));
+				int currentColor = bi.getRGB(currentColumn,currentRow);
+				pixelsInCurrentRow.add(currentColor);
+				if(currentColor != backgroundColor){
+					locationsThatAreNotBGColor.add(new Pair(currentRow,currentColumn));
+				}
 			}
 			pixels.add(pixelsInCurrentRow);
 		}
@@ -60,6 +89,42 @@ class Image{
 		this.backgroundColor = backgroundColor;
 		this.fileName = fileName;
 		this.pixels = pixels;
+	}
+
+	public ArrayList<Image> getImages(){
+		ArrayList<Image> individualImages = new ArrayList<Image>();
+		while(!locationsThatAreNotBGColor.isEmpty()){
+			Pair currentSmallest = findSmallestNotBGColor();
+			int currentX = currentSmallest.x;
+			while(pixels.get(currentSmallest.y).get(currentX+1) != backgroundColor){
+				currentX++;
+			}
+			int currentY = currentSmallest.y;
+			while(pixels.get(currentY+1).get(currentSmallest.x) != backgroundColor){
+				currentY++;
+			}
+			int w = currentX - currentSmallest.x;
+			int h = currentY - currentSmallest.y;
+			for(int h2 = currentSmallest.y; h2 < currentSmallest.y + h; h2++){
+				for(int w2 = currentSmallest.x; w2 < currentSmallest.x + w; w2++){
+					
+				}
+			}
+		}
+		return individualImages;
+	}
+
+	public Pair findSmallestNotBGColor(){
+		Pair currentSmallest = locationsThatAreNotBGColor.get(0);
+		for(Pair current : locationsThatAreNotBGColor){
+			if(currentSmallest.x > current.x){
+				currentSmallest = current;
+			}
+			else if(currentSmallest.x == current.x && currentSmallest.y > current.y){
+				currentSmallest = current;
+			}
+		}
+		return currentSmallest;
 	}
 
 	/*
