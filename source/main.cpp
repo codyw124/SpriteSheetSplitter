@@ -3,116 +3,104 @@
 
 #include "../headers/Pixel.h"
 #include "../headers/CImg.h"
+#include "../headers/Image.h"
 #include <iostream>
 #include <vector>
-#include <map>
-#include <utility>
 
 using namespace cimg_library;
+using namespace std;
 
-int main() 
+vector<Image> splitOnBGColorIntoRows(const Image &src, const Pixel &backgroundColor);
+vector<Image> splitOnBGColorIntoColumns(const Image &src, const Pixel &backgroundColor);
+
+int main()
 {
     CImg<int> src("Goku.png");
-    int width = src.width();
-    int height = src.height();
 
-    std::vector<Pixel*> potentialImages;
+    Pixel backgroundColor(src(0, 0, 0, 0), src(0, 0, 0, 1), src(0, 0, 0, 2));
 
-    Pixel* backgroundColor = new Pixel(0,0,src(0,0,0,0),src(0,0,0,1), src(0,0,0,2));
+    vector<Image> rows = splitOnBGColorIntoRows(src, backgroundColor);
 
-    for (int r = 0; r < height; r++)
+    vector<Image> generatedImages;
+
+    for (Image row : rows)
     {
-        for (int c = 0; c < width; c++)
-        {
-            Pixel* currentPixel = new Pixel(r,c,src(c,r,0,0),src(c,r,0,1), src(c,r,0,2));
+        vector<Image> columns = splitOnBGColorIntoColumns(row, backgroundColor);
 
-            if(*currentPixel!=*backgroundColor)
-            {
-                potentialImages.push_back(currentPixel);
-            }
-            else
-            {
-                delete currentPixel;
-            }
+        for (Image image : columns)
+        {
+            generatedImages.push_back(image);
         }
     }
-
-    std::vector<std::vector<Pixel*>*> images;
 
     int count = 1;
 
-    //scan all pixels and load into an image
-    for(Pixel* pixel : potentialImages)
+    cout<<"<spritesheet>\n";
+
+    for(Image img : generatedImages)
     {
-        std::cout<< count << " / " << potentialImages.size() <<std::endl;
-
-        bool pixelGotAddedToExistingImage = false;
-        
-        for(std::vector<Pixel*>* image : images)
-        {
-            for(Pixel* pixelInCurrentImage : *image)
-            {
-                if(pixelInCurrentImage->isTouching(*pixel))
-                {
-                    image->push_back(pixel);
-                    pixelGotAddedToExistingImage = true;
-                    break;
-                }
-            }
-
-            if(pixelGotAddedToExistingImage)
-            {
-                break;
-            }
-        }
-
-        if(!pixelGotAddedToExistingImage)
-        {
-            std::vector<Pixel*>* newImage = new std::vector<Pixel*>();
-            newImage->push_back(pixel);
-            images.push_back(newImage);
-        }
-
+        cout<<"\t<sprite>\n";
+        string imageName = "Goku_" + to_string(count) + ".png";
+        img.trimAllSides(backgroundColor);
+        src.getImage().get_crop(img.getX(), img.getY(),img.getX()+img.getW()-1, img.getY()+img.getH()-1).save_png(imageName.c_str());
         count++;
+        cout<<img;
+        cout<<"\t</sprite>\n";
+        break;
     }
 
-    //make sure no images are touching 
-    std::cout<<images.size() <<std::endl;
+    cout<<"</spritesheet>\n";
+}
 
-    std::cout<<"<spritesheet>\n";
+vector<Image> splitOnBGColorIntoColumns(const Image &src, const Pixel &backgroundColor)
+{
+    int x = 0;
+    int y = 0;
+    int w = 0;
+    int h = src.getH();
+    vector<Image> ret;
 
-    for(std::vector<Pixel*>* image : images)
+    for (int i = 0; i < src.getW(); i++)
     {
-        Pixel* topLeft = (*image)[0];
-        Pixel* bottomRight = (*image)[0];
-
-        for(Pixel* pixel : *image)
+        if (allInColumnAreBGColor(src.getImage().get_column(i), backgroundColor))
         {
-            if((topLeft->getX() > pixel->getX() && topLeft->getY() > pixel->getY()) ||
-            (topLeft->getX() == pixel->getX() && topLeft->getY() > pixel->getY()) ||
-            (topLeft->getX() > pixel->getX() && topLeft->getY() == pixel->getY()))
+            if (w > 1)
             {
-                topLeft = pixel;
+                Image currentImage(src.getImage().get_crop(x, src.getY(), x + w, y + h - 1), x,y,w,h);
+                ret.push_back(currentImage);
             }
-            else if()
+            x = x + w;
+            w = 0;
+        }
+        
+        w++;
+        
+    }
+    return ret;
+}
+
+vector<Image> splitOnBGColorIntoRows(const Image &src, const Pixel &backgroundColor)
+{
+    int x = 0;
+    int y = 0;
+    int w = src.getW();
+    int h = 0;
+    vector<Image> ret;
+
+    for (int i = 0; i < src.getH(); i++)
+    {
+        if (allInRowAreBGColor(src.getImage().get_row(i), backgroundColor))
+        {
+            if (h > 1)
             {
-                bottomRight = pixel;
+                Image currentImage(src.getImage().get_crop(x, y, x + w - 1, y + h), x,y,w,h);
+                ret.push_back(currentImage);
             }
+            y = y + h;
+            h = 0;
         }
 
-        std::cout<<"\t<sprite>\n";
-        std::cout<<"\t\t<x>" << topLeft->getX() << "</x>\n";
-
-        std::cout<<"\t</sprite>\n";
+        h++;
     }
-
-    //cleanup
-    delete backgroundColor;
-    backgroundColor = NULL;
-    for(Pixel* x : potentialImages)
-    {
-        delete x;
-    }
-
-    potentialImages.clear();
+    return ret;
 }
