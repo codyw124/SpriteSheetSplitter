@@ -11,7 +11,7 @@ objects:
 main: objects/main.o objects/Pixel.o objects/Image.o
 	$(COMPILER) objects/main.o objects/Pixel.o objects/Image.o $(LINKER_FLAGS) -o main
 
-objects/main.o: source/main.cpp  headers/Pixel.h headers/CImg.h headers/Image.h
+objects/main.o: source/main.cpp  headers/Pixel.h headers/Image.h
 	$(COMPILER) $(COMPILER_FLAGS) source/main.cpp -o objects/main.o
 
 objects/Pixel.o: source/Pixel.cpp headers/Pixel.h

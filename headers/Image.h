@@ -6,6 +6,7 @@
 #include "CImg.h"
 #include "Pixel.h"
 #include <string>
+#include <vector>
 
 using namespace cimg_library;
 
@@ -17,18 +18,23 @@ private:
     int y_;
     int w_;
     int h_;
+    std::string filename_;
+
+
+    Image(CImg<int>* image, const int& x, const int& y, const int& w, const int& h, const std::string& filename);
+    void trimAllSides(const Pixel& color);
+    bool allInRowAreColor(const int& rowIndex, const Pixel &color) const;
+    bool allInColumnAreColor(const int& columnIndex, const Pixel &color) const;
+    std::vector<Image*> splitIntoRowsByColor(const Pixel &color) const;
+    std::vector<Image*> splitIntoColumnsByColor(const Pixel &color) const;
 
 public:
-    Image(CImg<int>* image, const int& x, const int& y, const int& w, const int& h);
-    CImg<int>* getImage() const;
-    int operator()(const int& x,const int& y,const int& z,const int& c);
-    int getH() const;
-    int getW() const;
-    int getX() const;
-    int getY() const;
-    void trimAllSides(const Pixel& backgroundColor);
-    bool allInRowAreColor(int rowIndex, const Pixel &color);
-    bool allInColumnAreColor(const int& columnIndex, const Pixel &color);
+    Image(const std::string& filename);
+    Pixel operator()(const int& x,const int& y,const int& z) const;
+    std::string toXML() const;
+    std::vector<Image*> split(const Pixel& color) const;
+    void save() const;
+    ~Image();
 };
 
 std::ostream& operator<<(std::ostream& os, const Image & i);
